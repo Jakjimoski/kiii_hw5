@@ -1,47 +1,43 @@
 name: CI Pipeline
 
-   on:
-     push:
-       branches:
-         - master
-     pull_request:
-       branches:
-         - master
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
 
-   jobs:
-     lint:
-       runs-on: ubuntu-latest
-       steps:
-         - name: Checkout code
-           uses: actions/checkout@v4
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Run Super-Linter
+        uses: super-linter/super-linter@v5
+        env:
+          VALIDATE_ALL_CODEBASE: true
+          DEFAULT_BRANCH: master
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_HTML: true
 
-         - name: Run Super-Linter
-           uses: super-linter/super-linter@v5
-           env:
-             VALIDATE_ALL_CODEBASE: true
-             DEFAULT_BRANCH: main
-             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-             VALIDATE_HTML: true
-
-     build-and-push:
-       runs-on: ubuntu-latest
-       needs: lint
-       steps:
-         - name: Checkout code
-           uses: actions/checkout@v4
-
-         - name: Set up Docker Buildx
-           uses: docker/setup-buildx-action@v3
-
-         - name: Login to Docker Hub
-           uses: docker/login-action@v3
-           with:
-             username: ${{ secrets.DOCKERHUB_USERNAME }}
-             password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-         - name: Build and push Docker image
-           uses: docker/build-push-action@v5
-           with:
-             context: .
-             push: true
-             tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
+  build-and-push:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/my-app:latest
